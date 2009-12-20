@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		
+		<title>Last Stalker</title>
+		
+		<link rel="stylesheet" href="css/global.css" type="text/css" media="screen"> 
+		
+		<script src="js/jquery.js" type="text/javascript"></script>
+		<script src="js/global.js" type="text/javascript"></script>
+		
+	</head>
+	<body>
+		
+		<div id="header">
+			<div class="ctr">
+				<h1>Last Stalker</h1>
+			</div>
+		</div>
+		
+		
+		<form method="get">
+			<fieldset class="ctr">
+				<p>
+					<input type="text" name="user" value="" id="user" size="30">
+					<input type="submit" value="Go!">
+				</p>
+			</fieldset>
+		</form>
+		
+		<div id="intro">
+			<div class="ctr">
+				<p>So you want to look at someone's last.fm profile but they're a subscriber and you don't want your name on their recent visitors?</p> 
+				<p>Put their username in the form above!</p>
+			</div>
+		</div>
+		
+		<div id="loading">
+			Loading...
+		</div>
+		
+		<div id="article">
+			
+			<div class="set">
+				<div class="ctr">
+					<h3>Recent tracks</h3>
+					<ul id="recenttracks"></ul>
+				</div>
+			</div>
+			
+			<div class="set">
+				<div class="ctr">
+					<h3>Top artists</h3>
+					<ul id="topartists"></ul>
+				</div>
+			</div>
+			
+			<div class="set">
+				<div class="ctr">	
+					<h3>Top tracks</h3>
+					<ul id="toptracks"></ul>
+				</div>
+			</div>
+			
+			<div class="set">
+				<div class="ctr">	
+					<h3>Top albums</h3>
+					<ul id="topalbums"></ul>
+				</div>
+			</div>
+			
+			<div class="set">
+				<div class="ctr">
+					<h3>Events</h3>
+					<ul id="events"></ul>
+				</div>
+			</div>
+		</div>
+		
+		<div id="footer">
+			<div class="ctr">
+				<div>
+					By <a href="http://riklomas.co.uk">Rik Lomas</a>, using the last.fm API and a lot of Javascript
+				</div>
+			</div>
+		</div>
+	</body>
+</html>
