@@ -42,7 +42,7 @@ $(function () {
 				'title': 'Top Artists',
 				'method': 'user.getTopArtists',
 				'looper': 'artist',
-				'extra': '&period=3month',
+				'extra': 'period=3month',
 				'limit': 10,
 				'format': function (item) {
 					return link(item.name, item.url);
@@ -55,7 +55,7 @@ $(function () {
 				'title': 'Top Tracks',
 				'method': 'user.getTopTracks',
 				'looper': 'track',
-				'extra': '&period=3month',
+				'extra': 'period=3month',
 				'limit': 10,
 				'format': function (item) {
 					return link(item.name, item.url, true) + ' by ' + link(item.artist.name, item.artist.url);
@@ -66,10 +66,9 @@ $(function () {
 			},
 			'topalbums': {
 				'title': 'Top Albums',
-				
 				'method': 'user.getTopAlbums',
 				'looper': 'album',
-				'extra': '&period=3month',
+				'extra': 'period=3month',
 				'limit': 10,
 				'format': function (item) {
 					return link(item.name, item.url, true) + ' by ' + link(item.artist.name, item.artist.url);
@@ -80,10 +79,9 @@ $(function () {
 			},
 			'lovedtracks': {
 				'title': 'Loved Tracks',
-				
 				'method': 'user.getLovedTracks',
 				'looper': 'track',
-				'extra': '&limit=10',
+				'extra': 'limit=10',
 				'format': function (item) {
 					return link(item.name, item.url, true) + ' by ' + link(item.artist.name, item.artist.url);
 				},
@@ -106,7 +104,7 @@ $(function () {
 					if (reg && reg[0]) {
 						return reg[0].replace(',', '');
 					}
-					return d
+					return d;
 				}
 			}
 		}
@@ -128,6 +126,86 @@ $(function () {
 		return obj;
 	})();
 	
+	
+	var Panel = function (key, method) {
+		this.key = key;
+		this.method = method;
+		this.url = settings.api.replace('[[method]]', this.method.method).replace('[[user]]', querystring.user).replace('[[extra]]', ((typeof this.method.extra === "string") ? '&' + this.method.extra : ''));
+		
+		this.limits = function () {
+			if (typeof this.method.limit === "number")
+			{
+				this.jq.find('li').slice(this.method.limit).hide();
+				this.jq.append('<li class="more"><a href="#">More &raquo;</a></li>');
+			}
+		};
+		
+		this.success = function (data) {
+			
+			var str = '';
+			
+			for (j in data[this.key][this.method.looper])
+			{
+				var obj = data[this.key][this.method.looper][j];
+						
+				str += '<li>';
+				str += this.method.format(obj);
+					
+				if (typeof this.method.formatRight === "function")
+				{
+					str += '<div class="side">';
+					str += this.method.formatRight(obj); 
+					str += '</div>';
+				}
+				str += '</li>';
+			}
+			
+			this.jq.empty().append(str);
+			this.limits();
+		};
+		
+		this.error = function () {
+			this.jq.html('<li>Error getting data feed :(</li>');
+		}
+		
+		this.get = function () {
+			(function (e) {
+				$.ajax({
+					'url': e.url,
+					'dataType': 'jsonp',
+					'success': function (data) {
+						try {
+							e.success(data);
+						} catch (err) {
+							e.error();
+						}
+						$('#article').show();
+						$('#loading').hide();
+						
+					},
+					'error': function () {
+						e.error();
+						$('#article').show();
+						$('#loading').hide();
+						
+					}
+				});
+			})(this);
+		};
+		
+		this.build = function () {
+			$('#article').append('<div class="set"><div class="ctr"><h3>' + this.method.title + '</h3><ul id="' + this.key + '"></ul></div></div>');
+			this.jq = $('#' + this.key);
+		};
+		
+		this.init = function () {
+			this.build();
+			this.get();
+		};
+		
+		this.init();
+	};
+	
 	if (querystring.user)
 	{
 		$('#loading').show();
@@ -135,50 +213,8 @@ $(function () {
 		
 		for (i in settings.methods)
 		{
-			(function (key, method) {
-				
-				var url = settings.api.replace('[[method]]', method.method).replace('[[user]]', querystring.user).replace('[[extra]]', ((typeof method.extra === "string") ? method.extra : ''));
-				
-				$('#article').append('<div class="set"><div class="ctr"><h3>' + method.title + '</h3><ul id="' + key + '"></ul></div></div>');
-				
-				$.ajax({
-					'url': url,
-					'dataType': 'jsonp',
-					'success': function (data) {
-						(function (data, method) {
-							var str = '';
-							var jq = $('#' + key);
-							
-							for (j in data[key][method.looper])
-							{
-								str += '<li>';
-								str += method.format(data[key][method.looper][j]);
-								if (typeof method.formatRight === "function")
-								{
-									str += '<div class="side">' + method.formatRight(data[key][method.looper][j]) + '</div>';
-								}
-								str += '</li>';
-								
-							}
-							
-							jq.empty().append(str);
-							
-							if (typeof method.limit === "number")
-							{
-								jq.find('li').slice(method.limit).hide();
-								jq.append('<li class="more"><a href="#">More &raquo;</a></li>');
-							}
-							
-							$('#article').show();
-							$('#loading').hide();
-							
-						})(data, method);
-					},
-					'error': function () {
-						console.log('error');
-					}
-				});	
-			})(i, settings.methods[i]);
+			var panel = new Panel(i, settings.methods[i]);
+			
 		}
 	}
 	
