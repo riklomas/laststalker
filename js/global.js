@@ -19,11 +19,10 @@ $(function () {
 		
 	var settings = {
 		'api': 'http://ws.audioscrobbler.com/2.0/?method=[[method]]&user=[[user]]&api_key=b25b959554ed76058ac220b7b2e0a026&format=json[[extra]]',
-		'methods': [
-			{
+		'methods': {
+			'recenttracks': {
+				'title': 'Recent Tracks',
 				'method': 'user.getrecenttracks',
-				'element': '#recenttracks',
-				'body': 'recenttracks',
 				'looper': 'track',
 				'format': function (item) {
 					return link(item.artist['#text'] + ' - ' + item.name, item.url);
@@ -39,10 +38,9 @@ $(function () {
 					}
 				}
 			},
-			{
+			'topartists': {
+				'title': 'Top Artists',
 				'method': 'user.getTopArtists',
-				'element': '#topartists',
-				'body': 'topartists',
 				'looper': 'artist',
 				'extra': '&period=3month',
 				'limit': 10,
@@ -53,10 +51,9 @@ $(function () {
 					return item.playcount + ' play' + p(item.playcount);
 				}
 			},
-			{
+			'toptracks': {
+				'title': 'Top Tracks',
 				'method': 'user.getTopTracks',
-				'element': '#toptracks',
-				'body': 'toptracks',
 				'looper': 'track',
 				'extra': '&period=3month',
 				'limit': 10,
@@ -67,10 +64,10 @@ $(function () {
 					return item.playcount + ' play' + p(item.playcount);
 				}
 			},
-			{
+			'topalbums': {
+				'title': 'Top Albums',
+				
 				'method': 'user.getTopAlbums',
-				'element': '#topalbums',
-				'body': 'topalbums',
 				'looper': 'album',
 				'extra': '&period=3month',
 				'limit': 10,
@@ -81,10 +78,22 @@ $(function () {
 					return item.playcount + ' play' + p(item.playcount);
 				}
 			},
-			{
+			'lovedtracks': {
+				'title': 'Loved Tracks',
+				
+				'method': 'user.getLovedTracks',
+				'looper': 'track',
+				'extra': '&limit=10',
+				'format': function (item) {
+					return link(item.name, item.url, true) + ' by ' + link(item.artist.name, item.artist.url);
+				},
+				'formatRight': function (item) {
+					return item.date['#text'];
+				}
+			},
+			'events': {
+				'title': 'Events',
 				'method': 'user.getEvents',
-				'element': '#events',
-				'body': 'events',
 				'looper': 'event',
 				'format': function (item) {
 					var str = '';
@@ -100,7 +109,7 @@ $(function () {
 					return d
 				}
 			}
-		]
+		}
 	};
 	
 	var querystring = (function () {
@@ -126,9 +135,11 @@ $(function () {
 		
 		for (i in settings.methods)
 		{
-			(function (method) {
+			(function (key, method) {
 				
 				var url = settings.api.replace('[[method]]', method.method).replace('[[user]]', querystring.user).replace('[[extra]]', ((typeof method.extra === "string") ? method.extra : ''));
+				
+				$('#article').append('<div class="set"><div class="ctr"><h3>' + method.title + '</h3><ul id="' + key + '"></ul></div></div>');
 				
 				$.ajax({
 					'url': url,
@@ -136,24 +147,26 @@ $(function () {
 					'success': function (data) {
 						(function (data, method) {
 							var str = '';
-							for (j in data[method.body][method.looper])
+							var jq = $('#' + key);
+							
+							for (j in data[key][method.looper])
 							{
 								str += '<li>';
-								str += method.format(data[method.body][method.looper][j]);
+								str += method.format(data[key][method.looper][j]);
 								if (typeof method.formatRight === "function")
 								{
-									str += '<div class="side">' + method.formatRight(data[method.body][method.looper][j]) + '</div>';
+									str += '<div class="side">' + method.formatRight(data[key][method.looper][j]) + '</div>';
 								}
 								str += '</li>';
 								
 							}
 							
-							$(method.element).empty().append(str);
+							jq.empty().append(str);
 							
 							if (typeof method.limit === "number")
 							{
-								$(method.element).find('li').slice(method.limit).hide();
-								$(method.element).append('<li class="more"><a href="#">More &raquo;</a></li>');
+								jq.find('li').slice(method.limit).hide();
+								jq.append('<li class="more"><a href="#">More &raquo;</a></li>');
 							}
 							
 							$('#article').show();
@@ -165,7 +178,7 @@ $(function () {
 						console.log('error');
 					}
 				});	
-			})(settings.methods[i]);
+			})(i, settings.methods[i]);
 		}
 	}
 	
